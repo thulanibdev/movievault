@@ -3,29 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useWatchlist } from '@/hooks/useWatchlist'
 
 export default function Navbar() {
   const pathname = usePathname()
-  const [watchlistCount, setWatchlistCount] = useState(0)
+  const { watchlist } = useWatchlist()
+  const watchlistCount = watchlist.length
   const [scrolled, setScrolled] = useState(false)
-
-  // Update watchlist count whenever localStorage changes
-  useEffect(() => {
-    const updateCount = () => {
-      try {
-        const saved = JSON.parse(localStorage.getItem('movievault-watchlist') || '[]')
-        setWatchlistCount(saved.length)
-      } catch {
-        setWatchlistCount(0)
-      }
-    }
-
-    updateCount()
-
-    // Listen for custom event fired when watchlist changes
-    window.addEventListener('watchlist-updated', updateCount)
-    return () => window.removeEventListener('watchlist-updated', updateCount)
-  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)

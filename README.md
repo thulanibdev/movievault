@@ -1,110 +1,41 @@
-# 🎬 MovieVault
+# MovieVault
 
-A full-featured movie search and watchlist app built with **Next.js 14**, **Tailwind CSS**, and the free **TMDB API**.
+A movie discovery and watchlist project using the TMDB API.
 
-![MovieVault Preview](https://image.tmdb.org/t/p/w780/placeholder.jpg)
+[Live demo](https://movievault-jade.vercel.app/) · [Source](https://github.com/thulanibdev/movievault)
 
 ## Features
 
-- 🔍 **Search** millions of movies instantly
-- 🔥 **Trending** movies loaded on the homepage
-- 🎬 **Movie detail pages** with cast, trailer link, ratings, and similar movies
-- ✅ **Personal watchlist** — saved to localStorage, no account needed
-- 📱 **Fully responsive** — works on mobile, tablet, and desktop
-- ⚡ **Deployed on Vercel** in one click
+Movie search, trending titles, detail pages and a browser-stored watchlist.
 
----
+Watchlist changes are shared between components and tabs, and existing data is preserved on page load.
 
-## Getting Started
+## Stack and data
 
-### 1. Clone the repository
+Next.js 14, React, Tailwind CSS and TMDB.
 
-```bash
-git clone https://github.com/YOUR_USERNAME/movievault.git
-cd movievault
-```
+Browser-stored data belongs to the current browser profile. It does not sync to a user account, and clearing site data removes it. This is a portfolio project in ongoing development.
 
-### 2. Install dependencies
+## Run locally
 
 ```bash
-npm install
-```
-
-### 3. Get a free TMDB API key
-
-1. Go to [https://www.themoviedb.org](https://www.themoviedb.org) and create a free account
-2. Go to **Settings → API** and request an API key (choose "Developer")
-3. Copy your **API Key (v3 auth)**
-
-### 4. Set up your environment
-
-```bash
+npm ci
 cp .env.local.example .env.local
-```
-
-Then open `.env.local` and replace `your_tmdb_api_key_here` with your actual key:
-
-```
-NEXT_PUBLIC_TMDB_API_KEY=abc123yourkeyhere
-```
-
-### 5. Run the development server
-
-```bash
+# Add the required API credentials locally.
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open http://localhost:3000. Set `NEXT_PUBLIC_TMDB_API_KEY` for TMDB movie data. This public-prefixed value is visible in browser code; it must not be treated as a server secret.
 
----
+## Verification
 
-## Deploy to Vercel
-
-1. Push this project to a GitHub repository
-2. Go to [https://vercel.com](https://vercel.com) and click **"Add New Project"**
-3. Import your GitHub repository
-4. In the **Environment Variables** section, add:
-   - Key: `NEXT_PUBLIC_TMDB_API_KEY`
-   - Value: your TMDB API key
-5. Click **Deploy** — done! 🎉
-
----
-
-## Tech Stack
-
-| Tool | Purpose |
-|------|---------|
-| [Next.js 14](https://nextjs.org) | React framework with App Router |
-| [Tailwind CSS](https://tailwindcss.com) | Utility-first styling |
-| [TMDB API](https://developer.themoviedb.org) | Movie data |
-| [Vercel](https://vercel.com) | Hosting & deployment |
-
----
-
-## Project Structure
-
-```
-movievault/
-├── app/
-│   ├── layout.js          # Root layout with Navbar
-│   ├── page.js            # Home: search + trending
-│   ├── movie/[id]/
-│   │   └── page.js        # Movie detail page
-│   └── watchlist/
-│       └── page.js        # Saved watchlist
-├── components/
-│   ├── Navbar.js          # Top navigation
-│   ├── MovieCard.js       # Reusable movie card
-│   └── SearchBar.js       # Search input
-├── hooks/
-│   └── useWatchlist.js    # Watchlist logic (localStorage)
-├── lib/
-│   └── tmdb.js            # All TMDB API calls
-└── .env.local.example     # Environment variable template
+```bash
+npm test
+npm run build
 ```
 
----
+The tests cover the project's persistence or business logic and error cases. They do not validate third-party services or prove that every live-demo feature works.
 
-## License
+## Development priorities
 
-MIT — free to use and modify.
+Improve accessibility, document design decisions and add integration coverage as the project develops. Keep secret keys in local environment configuration and out of Git.

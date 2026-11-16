@@ -1,57 +1,58 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useSyncExternalStore } from 'react'
 
 const STORAGE_KEY = 'movievault-watchlist'
+const EVENT = 'watchlist-updated'
+const EMPTY = []
+let cachedRaw
+let cachedList = EMPTY
+let memoryOnly = false
 
-// Helper to dispatch a custom event so Navbar badge updates
-const notifyUpdate = () => window.dispatchEvent(new Event('watchlist-updated'))
+function snapshot() {
+  if (memoryOnly) return cachedList
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw !== cachedRaw) {
+      cachedRaw = raw
+      try {
+        const parsed = raw ? JSON.parse(raw) : []
+        cachedList = Array.isArray(parsed) ? parsed.filter(movie => movie && typeof movie.id === 'number') : []
+      } catch { cachedList = EMPTY }
+    }
+  } catch { /* A malformed value or unavailable storage must not crash the page. */ }
+  return cachedList
+}
+
+function subscribe(notify) {
+  const onStorage = event => {
+    if (event.key === STORAGE_KEY || event.key === null) {
+      memoryOnly = false
+      notify()
+    }
+  }
+  window.addEventListener(EVENT, notify)
+  window.addEventListener('storage', onStorage)
+  return () => {
+    window.removeEventListener(EVENT, notify)
+    window.removeEventListener('storage', onStorage)
+  }
+}
+
+function update(transform) {
+  const next = transform(snapshot())
+  cachedList = next
+  cachedRaw = JSON.stringify(next)
+  try { localStorage.setItem(STORAGE_KEY, cachedRaw) }
+  catch { memoryOnly = true }
+  window.dispatchEvent(new Event(EVENT))
+}
 
 export function useWatchlist() {
-  const [watchlist, setWatchlist] = useState([])
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-      setWatchlist(saved)
-    } catch {
-      setWatchlist([])
-    }
-  }, [])
-
-  // Save to localStorage whenever watchlist changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(watchlist))
-    notifyUpdate()
-  }, [watchlist])
-
-  const addToWatchlist = useCallback((movie) => {
-    setWatchlist((prev) => {
-      if (prev.find((m) => m.id === movie.id)) return prev
-      return [...prev, movie]
-    })
-  }, [])
-
-  const removeFromWatchlist = useCallback((movieId) => {
-    setWatchlist((prev) => prev.filter((m) => m.id !== movieId))
-  }, [])
-
-  const isInWatchlist = useCallback(
-    (movieId) => watchlist.some((m) => m.id === movieId),
-    [watchlist]
-  )
-
-  const toggleWatchlist = useCallback(
-    (movie) => {
-      if (isInWatchlist(movie.id)) {
-        removeFromWatchlist(movie.id)
-      } else {
-        addToWatchlist(movie)
-      }
-    },
-    [isInWatchlist, addToWatchlist, removeFromWatchlist]
-  )
-
+  const watchlist = useSyncExternalStore(subscribe, snapshot, () => EMPTY)
+  const addToWatchlist = movie => update(previous => previous.some(m => m.id === movie.id) ? previous : [...previous, movie])
+  const removeFromWatchlist = id => update(previous => previous.filter(m => m.id !== id))
+  const isInWatchlist = id => watchlist.some(m => m.id === id)
+  const toggleWatchlist = movie => update(previous => previous.some(m => m.id === movie.id) ? previous.filter(m => m.id !== movie.id) : [...previous, movie])
   return { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, toggleWatchlist }
 }
